@@ -94,4 +94,48 @@ public class InquiryMapper {
 
     }
 
+    public static void setInquiryStatus(ConnectionPool connectionPool, int inquiryId, String status) throws DatabaseException{
+        String sql = "UPDATE inquiries SET status = ? WHERE inquiry_id = ?";
+
+        try(
+                Connection connection = connectionPool.getConnection();
+                PreparedStatement ps = connection.prepareStatement(sql);
+        ) {
+            ps.setString(1, status);
+            ps.setInt(2, inquiryId);
+
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new DatabaseException("Error with database", e.getMessage());
+        }
+
+    }
+
+    public static String getCustomerEmail(ConnectionPool connectionPool, int inquiryId) throws DatabaseException {
+
+        String sql = "SELECT u.email FROM inquiries i JOIN users u ON i.user_id = u.user_id WHERE i.inquiry_id = ?";
+
+
+        try (
+                Connection connection = connectionPool.getConnection();
+                PreparedStatement ps = connection.prepareStatement(sql)
+        ) {
+
+            ps.setInt(1, inquiryId);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("email");
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException("Could not get email", e.getMessage());
+        }
+
+        return null;
+    }
+
 }
